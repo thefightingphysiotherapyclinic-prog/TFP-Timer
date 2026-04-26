@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TFP Treadmill Conditioning - Interval Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --tfp-dark-blue: #0d4f6e;
+            --tfp-teal: #148f9f;
+            --tfp-light-teal: #e8f4f6;
+            --foundation-color: #1abc9c;
+            --foundation-light: #e8f6f3;
+            --power-color: #f39c12;
+            --power-light: #fef9e7;
+            --capacity-color: #e74c3c;
+            --capacity-light: #fdedec;
+            --integration-color: #9b59b6;
+            --integration-light: #ebdef0;
+            --recovery-color: #27ae60;
+            --recovery-light: #d5f5e3;
+            --work-color: #e74c3c;
+            --rest-color: #27ae60;
+            --warmup-color: #f39c12;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0d4f6e 0%, #0a3d54 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0,0,0,0.2);
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--tfp-teal);
+        }
+
+        .header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .header p {
+            font-size: 0.75rem;
+            color: var(--tfp-teal);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Session Selection Screen */
+        #session-select {
+            display: block;
+        }
+
+        .phase-section {
+            margin-bottom: 25px;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid;
+        }
+
+        .phase-header.foundation { border-color: var(--foundation-color); }
+        .phase-header.power { border-color: var(--power-color); }
+        .phase-header.capacity { border-color: var(--capacity-color); }
+        .phase-header.integration { border-color: var(--integration-color); }
+        .phase-header.recovery { border-color: var(--recovery-color); }
+
+        .phase-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .phase-badge.foundation { background: var(--foundation-color); }
+        .phase-badge.power { background: var(--power-color); }
+        .phase-badge.capacity { background: var(--capacity-color); }
+        .phase-badge.integration { background: var(--integration-color); }
+        .phase-badge.recovery { background: var(--recovery-color); }
+
+        .phase-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .session-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .session-card:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .session-card:active {
+            transform: translateY(0);
+        }
+
+        .session-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .session-meta {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .session-meta span {
+            margin-right: 15px;
+        }
+
+        /* Timer Screen */
+        #timer-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .timer-session-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            margin-top: 50px;
+        }
+
+        .timer-phase-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        /* Main Timer Display */
+        .timer-display {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+        }
+
+        .timer-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-ring-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 12;
+        }
+
+        .timer-ring-progress {
+            fill: none;
+            stroke: var(--tfp-teal);
+            stroke-width: 12;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            transition: stroke-dashoffset 0.3s linear;
+        }
+
+        .timer-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .timer-time {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        .timer-interval-type {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        .timer-interval-type.work { color: var(--work-color); }
+        .timer-interval-type.rest { color: var(--rest-color); }
+        .timer-interval-type.warmup { color: var(--warmup-color); }
+
+        /* Current Instruction */
+        .current-instruction {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .instruction-speed {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .instruction-detail {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Progress Info */
+        .progress-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .progress-item {
+            text-align: center;
+        }
+
+        .progress-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .progress-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .control-btn.play-pause {
+            width: 90px;
+            height: 90px;
+            background: var(--tfp-teal);
+            color: white;
+        }
+
+        .control-btn.play-pause:hover {
+            background: #1aa8ba;
+            transform: scale(1.05);
+        }
+
+        .control-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .control-btn.secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Up Next */
+        .up-next {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        .up-next-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .up-next-content {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Session Preview Modal */
+        #session-preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .preview-content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .preview-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
+
+        .preview-intervals {
+            margin-bottom: 25px;
+        }
+
+        .preview-interval {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid;
+        }
+
+        .preview-interval.work { border-color: var(--work-color); }
+        .preview-interval.rest { border-color: var(--rest-color); }
+        .preview-interval.warmup { border-color: var(--warmup-color); }
+
+        .preview-interval-time {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            width: 60px;
+        }
+
+        .preview-interval-info {
+            flex: 1;
+        }
+
+        .preview-interval-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .preview-interval-detail {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .preview-interval-reps {
+            font-size: 0.75rem;
+            color: var(--tfp-teal);
+            font-weight: 600;
+        }
+
+        .start-session-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--tfp-teal);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .start-session-btn:hover {
+            background: #1aa8ba;
+            transform: translateY(-2px);
+        }
+
+        /* Complete Screen */
+        #complete-screen {
+            display: none;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .complete-icon {
+            width: 120px;
+            height: 120px;
+            background: var(--recovery-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+
+        .complete-icon svg {
+            width: 60px;
+            height: 60px;
+            color: white;
+        }
+
+        .complete-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .complete-session {
+            font-size: 1.1rem;
+            color: var(--tfp-teal);
+            margin-bottom: 30px;
+        }
+
+        .complete-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .complete-stat {
+            text-align: center;
+        }
+
+        .complete-stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+        }
+
+        .complete-stat-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .complete-btn {
+            padding: 15px 40px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid var(--tfp-teal);
+            border-radius: 30px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .complete-btn:hover {
+            background: var(--tfp-teal);
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .timer-display {
+                width: 240px;
+                height: 240px;
+            }
+            .timer-time {
+                font-size: 4rem;
+            }
+        }
+
+        /* Audio indicator */
+        .audio-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .audio-toggle.muted {
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Toggle -->
+    <button class="audio-toggle" id="audioToggle" title="Toggle sound">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>TFP Interval Timer</h1>
+        <p>Treadmill Conditioning Programme</p>
+    </div>
+
+    <!-- Session Selection -->
+    <div id="session-select" class="container">
+        
+        <!-- Foundation Sessions -->
+        <div class="phase-section">
+            <div class="phase-header foundation">
+                <span class="phase-badge foundation">Foundation</span>
+                <span class="phase-title">Aerobic Sessions</span>
+            </div>
+            
+            <div class="session-card" data-session="wave-intervals">
+                <div class="session-name">Wave Intervals</div>
+                <div class="session-meta">
+                    <span>~22 min</span>
+                    <span>RPE 8-9</span>
+                    <span>Weeks 1-2</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="ascending-ladder">
+                <div class="session-name">Ascending Ladder</div>
+                <div class="session-meta">
+                    <span>~24 min</span>
+                    <span>RPE 8-9</span>
+                    <span>Week 1</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="variable-pace">
+                <div class="session-name">Variable Pace</div>
+                <div class="session-meta">
+                    <span>~28 min</span>
+                    <span>RPE 8-9</span>
+                    <span>Week 2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Power Sessions -->
+        <div class="phase-section">
+            <div class="phase-header power">
+                <span class="phase-badge power">Power</span>
+                <span class="phase-title">Alactic Sessions</span>
+            </div>
+            
+            <div class="session-card" data-session="speed-builder">
+                <div class="session-name">Speed Builder</div>
+                <div class="session-meta">
+                    <span>~25 min</span>
+                    <span>RPE 10</span>
+                    <span>Week 3</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="dual-effort">
+                <div class="session-name">Dual-Effort Repeats</div>
+                <div class="session-meta">
+                    <span>~28 min</span>
+                    <span>RPE 10</span>
+                    <span>Week 3</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="triple-effort">
+                <div class="session-name">Triple-Effort Repeats</div>
+                <div class="session-meta">
+                    <span>~30 min</span>
+                    <span>RPE 10</span>
+                    <span>Week 4</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capacity Sessions -->
+        <div class="phase-section">
+            <div class="phase-header capacity">
+                <span class="phase-badge capacity">Capacity</span>
+                <span class="phase-title">Glycolytic Sessions</span>
+            </div>
+            
+            <div class="session-card" data-session="tempo-repeats">
+                <div class="session-name">Tempo Repeats</div>
+                <div class="session-meta">
+                    <span>~27 min</span>
+                    <span>RPE 7-8</span>
+                    <span>Week 6</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="density-intervals">
+                <div class="session-name">Density Intervals</div>
+                <div class="session-meta">
+                    <span>~25 min</span>
+                    <span>RPE 7-8</span>
+                    <span>Week 6</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="high-density">
+                <div class="session-name">High-Density Intervals</div>
+                <div class="session-meta">
+                    <span>~32 min</span>
+                    <span>RPE 7-8</span>
+                    <span>Week 7</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Sessions -->
+        <div class="phase-section">
+            <div class="phase-header integration">
+                <span class="phase-badge integration">Integration</span>
+                <span class="phase-title">Fight-Specific Sessions</span>
+            </div>
+            
+            <div class="session-card" data-session="round-simulation">
+                <div class="session-name">Round Simulation</div>
+                <div class="session-meta">
+                    <span>~22 min</span>
+                    <span>RPE 8-9</span>
+                    <span>Week 8</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="sharp-sprints">
+                <div class="session-name">Sharp Sprints</div>
+                <div class="session-meta">
+                    <span>~20 min</span>
+                    <span>RPE 10</span>
+                    <span>Week 8</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery Sessions -->
+        <div class="phase-section">
+            <div class="phase-header recovery">
+                <span class="phase-badge recovery">Recovery</span>
+                <span class="phase-title">Deload Sessions</span>
+            </div>
+            
+            <div class="session-card" data-session="easy-aerobic">
+                <div class="session-name">Easy Aerobic</div>
+                <div class="session-meta">
+                    <span>~25 min</span>
+                    <span>RPE 5-6</span>
+                    <span>Week 5</span>
+                </div>
+            </div>
+            
+            <div class="session-card" data-session="speed-touch">
+                <div class="session-name">Speed Touch</div>
+                <div class="session-meta">
+                    <span>~18 min</span>
+                    <span>RPE 6</span>
+                    <span>Week 5</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Preview Modal -->
+    <div id="session-preview">
+        <div class="preview-content">
+            <div class="preview-header">
+                <div>
+                    <div class="preview-title" id="preview-title">Session Name</div>
+                    <div class="timer-phase-badge" id="preview-badge">Phase</div>
+                </div>
+                <button class="preview-close" id="preview-close">&times;</button>
+            </div>
+            
+            <div class="preview-intervals" id="preview-intervals">
+                <!-- Intervals will be populated here -->
+            </div>
+            
+            <button class="start-session-btn" id="start-session-btn">Start Session</button>
+        </div>
+    </div>
+
+    <!-- Timer Screen -->
+    <div id="timer-screen" class="container">
+        <button class="back-btn" id="back-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back
+        </button>
+        
+        <div class="timer-session-name" id="timer-session-name">Session Name</div>
+        <div class="timer-phase-badge" id="timer-phase-badge">Phase</div>
+        
+        <!-- Timer Display -->
+        <div class="timer-display">
+            <svg class="timer-ring" viewBox="0 0 280 280">
+                <circle class="timer-ring-bg" cx="140" cy="140" r="130"/>
+                <circle class="timer-ring-progress" id="timer-progress" cx="140" cy="140" r="130" 
+                    stroke-dasharray="816.81" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-center">
+                <div class="timer-time" id="timer-time">0:00</div>
+                <div class="timer-interval-type" id="timer-type">READY</div>
+            </div>
+        </div>
+        
+        <!-- Current Instruction -->
+        <div class="current-instruction">
+            <div class="instruction-speed" id="instruction-speed">GET READY</div>
+            <div class="instruction-detail" id="instruction-detail">Prepare for your session</div>
+        </div>
+        
+        <!-- Progress Info -->
+        <div class="progress-info">
+            <div class="progress-item">
+                <div class="progress-label">Interval</div>
+                <div class="progress-value" id="progress-interval">0/0</div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-label">Set</div>
+                <div class="progress-value" id="progress-set">1/1</div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-label">Elapsed</div>
+                <div class="progress-value" id="progress-elapsed">0:00</div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn secondary" id="restart-btn" title="Restart">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                </svg>
+            </button>
+            <button class="control-btn play-pause" id="play-pause-btn" title="Play/Pause">
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+            </button>
+            <button class="control-btn secondary" id="skip-btn" title="Skip">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 4 15 12 5 20 5 4"/>
+                    <line x1="19" y1="5" x2="19" y2="19"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Up Next -->
+        <div class="up-next">
+            <div class="up-next-label">Up Next</div>
+            <div class="up-next-content" id="up-next">-</div>
+        </div>
+    </div>
+
+    <!-- Complete Screen -->
+    <div id="complete-screen" class="container">
+        <div class="complete-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div class="complete-title">Session Complete</div>
+        <div class="complete-session" id="complete-session-name">Wave Intervals</div>
+        
+        <div class="complete-stats">
+            <div class="complete-stat">
+                <div class="complete-stat-value" id="complete-time">0:00</div>
+                <div class="complete-stat-label">Total Time</div>
+            </div>
+            <div class="complete-stat">
+                <div class="complete-stat-value" id="complete-intervals">0</div>
+                <div class="complete-stat-label">Intervals</div>
+            </div>
+        </div>
+        
+        <button class="complete-btn" id="complete-btn">Back to Sessions</button>
+    </div>
+
+    <script>
+        // ====================================================================
+        // SESSION DATA
+        // ====================================================================
+        const sessions = {
+            'wave-intervals': {
+                name: 'Wave Intervals',
+                phase: 'foundation',
+                phaseLabel: 'Foundation',
+                color: '#1abc9c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    // Set 1
+                    { type: 'work', duration: 180, name: 'Block A', speed: '16-18 km/h', detail: 'Sustained effort' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 1' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 2' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 3' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 4' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Full recovery' },
+                    // Set 2
+                    { type: 'work', duration: 180, name: 'Block A', speed: '16-18 km/h', detail: 'Sustained effort' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 1' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 2' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 3' },
+                    { type: 'rest', duration: 45, name: 'Moderate', speed: '14-16 km/h', detail: 'Active recovery' },
+                    { type: 'work', duration: 45, name: 'Hard', speed: '18-20 km/h', detail: 'Block B - Rep 4' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Full recovery' },
+                ]
+            },
+            'ascending-ladder': {
+                name: 'Ascending Ladder',
+                phase: 'foundation',
+                phaseLabel: 'Foundation',
+                color: '#1abc9c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    // Set 1
+                    { type: 'work', duration: 60, name: '1 min effort', speed: '17-19 km/h', detail: 'Hard' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    { type: 'work', duration: 120, name: '2 min effort', speed: '17-19 km/h', detail: 'Hard' },
+                    { type: 'rest', duration: 90, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    { type: 'work', duration: 180, name: '3 min effort', speed: '17-19 km/h', detail: 'Finish strong' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Full recovery' },
+                    // Set 2
+                    { type: 'work', duration: 60, name: '1 min effort', speed: '17-19 km/h', detail: 'Hard' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    { type: 'work', duration: 120, name: '2 min effort', speed: '17-19 km/h', detail: 'Hard' },
+                    { type: 'rest', duration: 90, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    { type: 'work', duration: 180, name: '3 min effort', speed: '17-19 km/h', detail: 'Finish strong' },
+                ]
+            },
+            'variable-pace': {
+                name: 'Variable Pace',
+                phase: 'foundation',
+                phaseLabel: 'Foundation',
+                color: '#1abc9c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    // Block 1
+                    { type: 'work', duration: 60, name: 'Settle in', speed: '14-16 km/h', detail: 'Block 1' },
+                    { type: 'work', duration: 30, name: 'Surge', speed: '18-20 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 90, name: 'Sustain', speed: '15-17 km/h', detail: 'Hold pace' },
+                    { type: 'work', duration: 20, name: 'Attack', speed: '19-21 km/h', detail: 'Burst!' },
+                    { type: 'work', duration: 100, name: 'Recover', speed: '15-17 km/h', detail: 'While working' },
+                    { type: 'work', duration: 60, name: 'Finish strong', speed: '17-19 km/h', detail: 'Push to end' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    // Block 2
+                    { type: 'work', duration: 60, name: 'Settle in', speed: '14-16 km/h', detail: 'Block 2' },
+                    { type: 'work', duration: 30, name: 'Surge', speed: '18-20 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 90, name: 'Sustain', speed: '15-17 km/h', detail: 'Hold pace' },
+                    { type: 'work', duration: 20, name: 'Attack', speed: '19-21 km/h', detail: 'Burst!' },
+                    { type: 'work', duration: 100, name: 'Recover', speed: '15-17 km/h', detail: 'While working' },
+                    { type: 'work', duration: 60, name: 'Finish strong', speed: '17-19 km/h', detail: 'Push to end' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    // Block 3
+                    { type: 'work', duration: 60, name: 'Settle in', speed: '14-16 km/h', detail: 'Block 3' },
+                    { type: 'work', duration: 30, name: 'Surge', speed: '18-20 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 90, name: 'Sustain', speed: '15-17 km/h', detail: 'Hold pace' },
+                    { type: 'work', duration: 20, name: 'Attack', speed: '19-21 km/h', detail: 'Burst!' },
+                    { type: 'work', duration: 100, name: 'Recover', speed: '15-17 km/h', detail: 'While working' },
+                    { type: 'work', duration: 60, name: 'Finish strong', speed: '17-19 km/h', detail: 'Push to end' },
+                    { type: 'rest', duration: 120, name: 'Walk', speed: '5-6 km/h', detail: 'Recovery' },
+                    // Block 4
+                    { type: 'work', duration: 60, name: 'Settle in', speed: '14-16 km/h', detail: 'Block 4 - Final!' },
+                    { type: 'work', duration: 30, name: 'Surge', speed: '18-20 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 90, name: 'Sustain', speed: '15-17 km/h', detail: 'Hold pace' },
+                    { type: 'work', duration: 20, name: 'Attack', speed: '19-21 km/h', detail: 'Burst!' },
+                    { type: 'work', duration: 100, name: 'Recover', speed: '15-17 km/h', detail: 'While working' },
+                    { type: 'work', duration: 60, name: 'Finish strong', speed: '17-19 km/h', detail: 'DONE!' },
+                ]
+            },
+            'speed-builder': {
+                name: 'Speed Builder',
+                phase: 'power',
+                phaseLabel: 'Power',
+                color: '#f39c12',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 8, name: 'Activation 1', speed: '70%', detail: 'Build sprint' },
+                    { type: 'rest', duration: 30, name: 'Rest', speed: 'Walk', detail: '' },
+                    { type: 'warmup', duration: 8, name: 'Activation 2', speed: '80%', detail: 'Build sprint' },
+                    { type: 'rest', duration: 30, name: 'Rest', speed: 'Walk', detail: '' },
+                    { type: 'warmup', duration: 8, name: 'Activation 3', speed: '90%', detail: 'Build sprint' },
+                    { type: 'rest', duration: 120, name: 'Full Rest', speed: 'Off treadmill', detail: 'Complete recovery' },
+                    // Sprints
+                    { type: 'work', duration: 12, name: 'SPRINT 1', speed: 'MAX', detail: 'Personal best!' },
+                    { type: 'rest', duration: 150, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 12, name: 'SPRINT 2', speed: 'MAX', detail: 'Match Sprint 1' },
+                    { type: 'rest', duration: 150, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 12, name: 'SPRINT 3', speed: 'MAX', detail: 'Stay consistent' },
+                    { type: 'rest', duration: 150, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 12, name: 'SPRINT 4', speed: 'MAX', detail: 'Maintain quality' },
+                    { type: 'rest', duration: 150, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 12, name: 'SPRINT 5', speed: 'MAX', detail: 'Two more!' },
+                    { type: 'rest', duration: 150, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 12, name: 'SPRINT 6', speed: 'MAX', detail: 'FINAL SPRINT!' },
+                ]
+            },
+            'dual-effort': {
+                name: 'Dual-Effort Repeats',
+                phase: 'power',
+                phaseLabel: 'Power',
+                color: '#f39c12',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 8, name: 'Activation', speed: '70-90%', detail: '4 builds' },
+                    { type: 'rest', duration: 120, name: 'Full Rest', speed: 'Off treadmill', detail: 'Complete recovery' },
+                    // Pairs
+                    { type: 'work', duration: 10, name: 'SPRINT 1A', speed: 'MAX', detail: 'Pair 1' },
+                    { type: 'rest', duration: 20, name: 'Walk', speed: '5 km/h', detail: 'Brief rest' },
+                    { type: 'work', duration: 10, name: 'SPRINT 1B', speed: 'MAX', detail: 'Match 1A!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 2A', speed: 'MAX', detail: 'Pair 2' },
+                    { type: 'rest', duration: 20, name: 'Walk', speed: '5 km/h', detail: 'Brief rest' },
+                    { type: 'work', duration: 10, name: 'SPRINT 2B', speed: 'MAX', detail: 'Match 2A!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 3A', speed: 'MAX', detail: 'Pair 3' },
+                    { type: 'rest', duration: 20, name: 'Walk', speed: '5 km/h', detail: 'Brief rest' },
+                    { type: 'work', duration: 10, name: 'SPRINT 3B', speed: 'MAX', detail: 'Match 3A!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 4A', speed: 'MAX', detail: 'Pair 4' },
+                    { type: 'rest', duration: 20, name: 'Walk', speed: '5 km/h', detail: 'Brief rest' },
+                    { type: 'work', duration: 10, name: 'SPRINT 4B', speed: 'MAX', detail: 'Match 4A!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 5A', speed: 'MAX', detail: 'Final pair!' },
+                    { type: 'rest', duration: 20, name: 'Walk', speed: '5 km/h', detail: 'Brief rest' },
+                    { type: 'work', duration: 10, name: 'SPRINT 5B', speed: 'MAX', detail: 'FINISH STRONG!' },
+                ]
+            },
+            'triple-effort': {
+                name: 'Triple-Effort Repeats',
+                phase: 'power',
+                phaseLabel: 'Power',
+                color: '#f39c12',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 8, name: 'Activation', speed: '70-90%', detail: '4 builds' },
+                    { type: 'rest', duration: 120, name: 'Full Rest', speed: 'Off treadmill', detail: 'Complete recovery' },
+                    // Triple 1
+                    { type: 'work', duration: 8, name: 'SPRINT 1A', speed: 'MAX', detail: 'Triple 1' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 1B', speed: 'MAX', detail: 'Stay fast!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 1C', speed: 'MAX', detail: 'Maintain!' },
+                    { type: 'rest', duration: 210, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    // Triple 2
+                    { type: 'work', duration: 8, name: 'SPRINT 2A', speed: 'MAX', detail: 'Triple 2' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 2B', speed: 'MAX', detail: 'Stay fast!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 2C', speed: 'MAX', detail: 'Maintain!' },
+                    { type: 'rest', duration: 210, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    // Triple 3
+                    { type: 'work', duration: 8, name: 'SPRINT 3A', speed: 'MAX', detail: 'Triple 3' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 3B', speed: 'MAX', detail: 'Stay fast!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 3C', speed: 'MAX', detail: 'Maintain!' },
+                    { type: 'rest', duration: 210, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    // Triple 4
+                    { type: 'work', duration: 8, name: 'SPRINT 4A', speed: 'MAX', detail: 'Triple 4' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 4B', speed: 'MAX', detail: 'Stay fast!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 4C', speed: 'MAX', detail: 'Maintain!' },
+                    { type: 'rest', duration: 210, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    // Triple 5
+                    { type: 'work', duration: 8, name: 'SPRINT 5A', speed: 'MAX', detail: 'FINAL TRIPLE!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 5B', speed: 'MAX', detail: 'Stay fast!' },
+                    { type: 'rest', duration: 15, name: 'Walk', speed: '5 km/h', detail: '' },
+                    { type: 'work', duration: 8, name: 'SPRINT 5C', speed: 'MAX', detail: 'DONE!' },
+                ]
+            },
+            'tempo-repeats': {
+                name: 'Tempo Repeats',
+                phase: 'capacity',
+                phaseLabel: 'Capacity',
+                color: '#e74c3c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 30, name: 'Activation', speed: '15-16 km/h', detail: '' },
+                    { type: 'rest', duration: 30, name: 'Walk', speed: '5-6 km/h', detail: '' },
+                    { type: 'warmup', duration: 30, name: 'Activation', speed: '15-16 km/h', detail: '' },
+                    { type: 'rest', duration: 30, name: 'Walk', speed: '5-6 km/h', detail: '' },
+                    { type: 'warmup', duration: 30, name: 'Activation', speed: '15-16 km/h', detail: '' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: '5-6 km/h', detail: 'Ready to work' },
+                    // Reps
+                    { type: 'work', duration: 90, name: 'Tempo 1', speed: '15-17 km/h', detail: 'RPE 7-8' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 2', speed: '15-17 km/h', detail: 'RPE 7-8' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 3', speed: '15-17 km/h', detail: 'RPE 7-8' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 4', speed: '15-17 km/h', detail: 'RPE 7-8' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 5', speed: '15-17 km/h', detail: 'RPE 7-8' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 6', speed: '15-17 km/h', detail: 'Two more!' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 7', speed: '15-17 km/h', detail: 'Last one!' },
+                    { type: 'rest', duration: 60, name: 'Walk', speed: '5-6 km/h', detail: 'Recover' },
+                    { type: 'work', duration: 90, name: 'Tempo 8', speed: '15-17 km/h', detail: 'FINISH!' },
+                ]
+            },
+            'density-intervals': {
+                name: 'Density Intervals',
+                phase: 'capacity',
+                phaseLabel: 'Capacity',
+                color: '#e74c3c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 20, name: 'Activation', speed: '15-16 km/h', detail: '' },
+                    { type: 'rest', duration: 40, name: 'Rest', speed: '5-6 km/h', detail: '' },
+                    { type: 'warmup', duration: 20, name: 'Activation', speed: '15-16 km/h', detail: '' },
+                    { type: 'rest', duration: 40, name: 'Rest', speed: '5-6 km/h', detail: '' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: '5-6 km/h', detail: 'Ready for Set 1' },
+                    // Set 1
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 1' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 2' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 3' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 4' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 5' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 1 - Rep 6' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: '5-6 km/h', detail: 'Set break - 3 min' },
+                    // Set 2
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - Rep 1' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - Rep 2' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - Rep 3' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - Rep 4' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - Rep 5' },
+                    { type: 'rest', duration: 40, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 20, name: 'On', speed: '15-17 km/h', detail: 'Set 2 - FINAL!' },
+                ]
+            },
+            'high-density': {
+                name: 'High-Density Intervals',
+                phase: 'capacity',
+                phaseLabel: 'Capacity',
+                color: '#e74c3c',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: '5-6 km/h', detail: 'Ready for Set 1' },
+                    // Set 1
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 1 - Rep 1' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 1 - Rep 2' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 1 - Rep 3' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 1 - Rep 4' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 1 - Rep 5' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 1 - Rep 6' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'Control', speed: '16-18 km/h (85%)', detail: 'Set 1 - Rep 7' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'Control', speed: '16-18 km/h (85%)', detail: 'Set 1 - Rep 8' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: '5-6 km/h', detail: 'Set break - 3 min' },
+                    // Set 2
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 2 - Rep 1' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 2 - Rep 2' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 2 - Rep 3' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 2 - Rep 4' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 2 - Rep 5' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 2 - Rep 6' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'Control', speed: '16-18 km/h (85%)', detail: 'Set 2 - Rep 7' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'Control', speed: '16-18 km/h (85%)', detail: 'Set 2 - Rep 8' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: '5-6 km/h', detail: 'Set break - 3 min' },
+                    // Set 3
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'FINAL SET - Rep 1' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 3 - Rep 2' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'On', speed: '16-18 km/h (85%)', detail: 'Set 3 - Rep 3' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 3 - Rep 4' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 3 - Rep 5' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'PUSH', speed: '18-19 km/h (95%)', detail: 'Set 3 - Rep 6' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'Control', speed: '16-18 km/h (85%)', detail: 'Set 3 - Rep 7' },
+                    { type: 'rest', duration: 30, name: 'Off', speed: '5-6 km/h', detail: '' },
+                    { type: 'work', duration: 15, name: 'FINISH!', speed: '16-18 km/h (85%)', detail: 'DONE!' },
+                ]
+            },
+            'round-simulation': {
+                name: 'Round Simulation',
+                phase: 'integration',
+                phaseLabel: 'Integration',
+                color: '#9b59b6',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: 'Ready for Round 1' },
+                    // Round 1
+                    { type: 'work', duration: 15, name: 'Opening burst', speed: '19-21 km/h', detail: 'ROUND 1' },
+                    { type: 'work', duration: 30, name: 'Rhythm', speed: '14-16 km/h', detail: 'Establish pace' },
+                    { type: 'work', duration: 15, name: 'Attack', speed: '19-21 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 45, name: 'Recover', speed: '14-16 km/h', detail: 'Working recovery' },
+                    { type: 'work', duration: 15, name: 'Mid-round surge', speed: '19-21 km/h', detail: 'Surge!' },
+                    { type: 'work', duration: 40, name: 'Sustain', speed: '14-16 km/h', detail: 'Hold on' },
+                    { type: 'work', duration: 20, name: 'Finish strong', speed: '20-22 km/h', detail: 'END OF ROUND!' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: 'Round break' },
+                    // Round 2
+                    { type: 'work', duration: 15, name: 'Opening burst', speed: '19-21 km/h', detail: 'ROUND 2' },
+                    { type: 'work', duration: 30, name: 'Rhythm', speed: '14-16 km/h', detail: 'Establish pace' },
+                    { type: 'work', duration: 15, name: 'Attack', speed: '19-21 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 45, name: 'Recover', speed: '14-16 km/h', detail: 'Working recovery' },
+                    { type: 'work', duration: 15, name: 'Mid-round surge', speed: '19-21 km/h', detail: 'Surge!' },
+                    { type: 'work', duration: 40, name: 'Sustain', speed: '14-16 km/h', detail: 'Hold on' },
+                    { type: 'work', duration: 20, name: 'Finish strong', speed: '20-22 km/h', detail: 'END OF ROUND!' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: 'Round break' },
+                    // Round 3
+                    { type: 'work', duration: 15, name: 'Opening burst', speed: '19-21 km/h', detail: 'ROUND 3' },
+                    { type: 'work', duration: 30, name: 'Rhythm', speed: '14-16 km/h', detail: 'Establish pace' },
+                    { type: 'work', duration: 15, name: 'Attack', speed: '19-21 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 45, name: 'Recover', speed: '14-16 km/h', detail: 'Working recovery' },
+                    { type: 'work', duration: 15, name: 'Mid-round surge', speed: '19-21 km/h', detail: 'Surge!' },
+                    { type: 'work', duration: 40, name: 'Sustain', speed: '14-16 km/h', detail: 'Hold on' },
+                    { type: 'work', duration: 20, name: 'Finish strong', speed: '20-22 km/h', detail: 'END OF ROUND!' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: 'Round break' },
+                    // Round 4
+                    { type: 'work', duration: 15, name: 'Opening burst', speed: '19-21 km/h', detail: 'FINAL ROUND!' },
+                    { type: 'work', duration: 30, name: 'Rhythm', speed: '14-16 km/h', detail: 'Establish pace' },
+                    { type: 'work', duration: 15, name: 'Attack', speed: '19-21 km/h', detail: 'Push!' },
+                    { type: 'work', duration: 45, name: 'Recover', speed: '14-16 km/h', detail: 'Working recovery' },
+                    { type: 'work', duration: 15, name: 'Mid-round surge', speed: '19-21 km/h', detail: 'Surge!' },
+                    { type: 'work', duration: 40, name: 'Sustain', speed: '14-16 km/h', detail: 'Almost there!' },
+                    { type: 'work', duration: 20, name: 'FINISH!', speed: '20-22 km/h', detail: 'SESSION COMPLETE!' },
+                ]
+            },
+            'sharp-sprints': {
+                name: 'Sharp Sprints',
+                phase: 'integration',
+                phaseLabel: 'Integration',
+                color: '#9b59b6',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Warm-up', speed: '10-14 km/h', detail: 'Progressive build' },
+                    { type: 'warmup', duration: 6, name: 'Build 1', speed: '70%', detail: '' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: '' },
+                    { type: 'warmup', duration: 6, name: 'Build 2', speed: '80%', detail: '' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: '' },
+                    { type: 'warmup', duration: 6, name: 'Build 3', speed: '90%', detail: '' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: '' },
+                    { type: 'warmup', duration: 6, name: 'Build 4', speed: '95%', detail: '' },
+                    { type: 'rest', duration: 120, name: 'Full Rest', speed: 'Off treadmill', detail: 'Ready to go!' },
+                    // Sprints
+                    { type: 'work', duration: 10, name: 'SPRINT 1', speed: 'MAX', detail: 'Personal best!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 2', speed: 'MAX', detail: 'Stay explosive!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 3', speed: 'MAX', detail: 'Maintain quality!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 4', speed: 'MAX', detail: 'One more!' },
+                    { type: 'rest', duration: 180, name: 'Rest', speed: 'Complete rest', detail: 'Full recovery' },
+                    { type: 'work', duration: 10, name: 'SPRINT 5', speed: 'MAX', detail: 'FINAL - GO ALL OUT!' },
+                ]
+            },
+            'easy-aerobic': {
+                name: 'Easy Aerobic',
+                phase: 'recovery',
+                phaseLabel: 'Recovery',
+                color: '#27ae60',
+                intervals: [
+                    { type: 'warmup', duration: 180, name: 'Easy start', speed: '10-11 km/h', detail: 'Gentle' },
+                    { type: 'work', duration: 300, name: 'Steady', speed: '12-13 km/h', detail: 'Conversational' },
+                    { type: 'work', duration: 300, name: 'Steady', speed: '12-14 km/h', detail: 'RPE 5-6' },
+                    { type: 'work', duration: 300, name: 'Steady', speed: '12-14 km/h', detail: 'Easy breathing' },
+                    { type: 'work', duration: 300, name: 'Steady', speed: '12-14 km/h', detail: 'Recovery day' },
+                    { type: 'rest', duration: 120, name: 'Cool down', speed: '8-10 km/h', detail: 'Gradual slowdown' },
+                ]
+            },
+            'speed-touch': {
+                name: 'Speed Touch',
+                phase: 'recovery',
+                phaseLabel: 'Recovery',
+                color: '#27ae60',
+                intervals: [
+                    { type: 'warmup', duration: 300, name: 'Easy jog', speed: '10-12 km/h', detail: 'Light effort' },
+                    { type: 'rest', duration: 60, name: 'Rest', speed: 'Walk', detail: 'Ready' },
+                    { type: 'work', duration: 8, name: 'Speed touch 1', speed: '85% (NOT max)', detail: 'Comfortable fast' },
+                    { type: 'rest', duration: 150, name: 'Walk', speed: '5-6 km/h', detail: 'Easy recovery' },
+                    { type: 'work', duration: 8, name: 'Speed touch 2', speed: '85% (NOT max)', detail: 'Comfortable fast' },
+                    { type: 'rest', duration: 150, name: 'Walk', speed: '5-6 km/h', detail: 'Easy recovery' },
+                    { type: 'work', duration: 8, name: 'Speed touch 3', speed: '85% (NOT max)', detail: 'Comfortable fast' },
+                    { type: 'rest', duration: 150, name: 'Walk', speed: '5-6 km/h', detail: 'Easy recovery' },
+                    { type: 'work', duration: 8, name: 'Speed touch 4', speed: '85% (NOT max)', detail: 'Final one!' },
+                    { type: 'rest', duration: 120, name: 'Cool down', speed: '8-10 km/h', detail: 'Done!' },
+                ]
+            }
+        };
+
+        // ====================================================================
+        // AUDIO
+        // ====================================================================
+        let audioEnabled = true;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBeep(frequency = 800, duration = 0.15, type = 'sine') {
+            if (!audioEnabled) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch(e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playWorkBeep() {
+            playBeep(880, 0.2);
+            setTimeout(() => playBeep(1100, 0.3), 200);
+        }
+
+        function playRestBeep() {
+            playBeep(440, 0.3);
+        }
+
+        function playCountdown() {
+            playBeep(600, 0.1);
+        }
+
+        function playComplete() {
+            playBeep(523, 0.2);
+            setTimeout(() => playBeep(659, 0.2), 200);
+            setTimeout(() => playBeep(784, 0.4), 400);
+        }
+
+        // ====================================================================
+        // SPEECH
+        // ====================================================================
+        function speak(text) {
+            if (!audioEnabled || !('speechSynthesis' in window)) return;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.1;
+            utterance.pitch = 1;
+            utterance.volume = 0.8;
+            speechSynthesis.speak(utterance);
+        }
+
+        // ====================================================================
+        // TIMER STATE
+        // ====================================================================
+        let currentSession = null;
+        let currentIntervalIndex = 0;
+        let timeRemaining = 0;
+        let totalElapsed = 0;
+        let isRunning = false;
+        let timerInterval = null;
+
+        // ====================================================================
+        // DOM ELEMENTS
+        // ====================================================================
+        const sessionSelect = document.getElementById('session-select');
+        const sessionPreview = document.getElementById('session-preview');
+        const timerScreen = document.getElementById('timer-screen');
+        const completeScreen = document.getElementById('complete-screen');
+
+        const previewTitle = document.getElementById('preview-title');
+        const previewBadge = document.getElementById('preview-badge');
+        const previewIntervals = document.getElementById('preview-intervals');
+
+        const timerSessionName = document.getElementById('timer-session-name');
+        const timerPhaseBadge = document.getElementById('timer-phase-badge');
+        const timerTime = document.getElementById('timer-time');
+        const timerType = document.getElementById('timer-type');
+        const timerProgress = document.getElementById('timer-progress');
+        const instructionSpeed = document.getElementById('instruction-speed');
+        const instructionDetail = document.getElementById('instruction-detail');
+        const progressInterval = document.getElementById('progress-interval');
+        const progressSet = document.getElementById('progress-set');
+        const progressElapsed = document.getElementById('progress-elapsed');
+        const upNext = document.getElementById('up-next');
+
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+
+        // ====================================================================
+        // HELPERS
+        // ====================================================================
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgressRing(percent) {
+            const circumference = 2 * Math.PI * 130;
+            const offset = circumference * (1 - percent);
+            timerProgress.style.strokeDashoffset = offset;
+        }
+
+        // ====================================================================
+        // SESSION CARD CLICKS
+        // ====================================================================
+        document.querySelectorAll('.session-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const sessionId = card.dataset.session;
+                showPreview(sessionId);
+            });
+        });
+
+        function showPreview(sessionId) {
+            const session = sessions[sessionId];
+            if (!session) return;
+
+            currentSession = { ...session, id: sessionId };
+            
+            previewTitle.textContent = session.name;
+            previewBadge.textContent = session.phaseLabel;
+            previewBadge.style.background = session.color;
+            
+            // Build preview intervals
+            let html = '';
+            session.intervals.forEach((interval, i) => {
+                html += `
+                    <div class="preview-interval ${interval.type}">
+                        <div class="preview-interval-time">${formatTime(interval.duration)}</div>
+                        <div class="preview-interval-info">
+                            <div class="preview-interval-name">${interval.name}</div>
+                            <div class="preview-interval-detail">${interval.speed}${interval.detail ? ' - ' + interval.detail : ''}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            previewIntervals.innerHTML = html;
+            
+            sessionSelect.style.display = 'none';
+            sessionPreview.style.display = 'block';
+        }
+
+        // Preview close
+        document.getElementById('preview-close').addEventListener('click', () => {
+            sessionPreview.style.display = 'none';
+            sessionSelect.style.display = 'block';
+        });
+
+        // Start session
+        document.getElementById('start-session-btn').addEventListener('click', () => {
+            startSession();
+        });
+
+        // ====================================================================
+        // TIMER FUNCTIONS
+        // ====================================================================
+        function startSession() {
+            if (!currentSession) return;
+            
+            // Resume audio context (required for iOS)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            sessionPreview.style.display = 'none';
+            timerScreen.style.display = 'block';
+            
+            timerSessionName.textContent = currentSession.name;
+            timerPhaseBadge.textContent = currentSession.phaseLabel;
+            timerPhaseBadge.style.background = currentSession.color;
+            
+            currentIntervalIndex = 0;
+            totalElapsed = 0;
+            
+            loadInterval(0);
+            
+            // Auto-start after 3 seconds
+            timerTime.textContent = '3';
+            timerType.textContent = 'GET READY';
+            timerType.className = 'timer-interval-type';
+            instructionSpeed.textContent = 'STARTING IN...';
+            instructionDetail.textContent = 'Prepare for ' + currentSession.intervals[0].name;
+            
+            let countdown = 3;
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                playCountdown();
+                timerTime.textContent = countdown.toString();
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    loadInterval(0);
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        function loadInterval(index) {
+            if (index >= currentSession.intervals.length) {
+                completeSession();
+                return;
+            }
+            
+            const interval = currentSession.intervals[index];
+            timeRemaining = interval.duration;
+            
+            // Update display
+            timerTime.textContent = formatTime(timeRemaining);
+            timerType.textContent = interval.type.toUpperCase();
+            timerType.className = 'timer-interval-type ' + interval.type;
+            
+            instructionSpeed.textContent = interval.speed;
+            instructionDetail.textContent = interval.detail || interval.name;
+            
+            // Update progress ring color
+            if (interval.type === 'work') {
+                timerProgress.style.stroke = '#e74c3c';
+            } else if (interval.type === 'rest') {
+                timerProgress.style.stroke = '#27ae60';
+            } else {
+                timerProgress.style.stroke = '#f39c12';
+            }
+            
+            updateProgressRing(1);
+            
+            // Update progress info
+            progressInterval.textContent = `${index + 1}/${currentSession.intervals.length}`;
+            
+            // Up next
+            if (index + 1 < currentSession.intervals.length) {
+                const next = currentSession.intervals[index + 1];
+                upNext.textContent = `${next.name} - ${formatTime(next.duration)}`;
+            } else {
+                upNext.textContent = 'Session complete!';
+            }
+            
+            // Audio/speech announcement
+            if (interval.type === 'work') {
+                playWorkBeep();
+                setTimeout(() => speak(interval.name + '. ' + interval.speed), 300);
+            } else if (interval.type === 'rest') {
+                playRestBeep();
+                setTimeout(() => speak('Rest. ' + interval.speed), 300);
+            } else {
+                setTimeout(() => speak(interval.name), 300);
+            }
+        }
+
+        function startTimer() {
+            isRunning = true;
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+            
+            timerInterval = setInterval(() => {
+                if (!isRunning) return;
+                
+                timeRemaining--;
+                totalElapsed++;
+                
+                timerTime.textContent = formatTime(timeRemaining);
+                progressElapsed.textContent = formatTime(totalElapsed);
+                
+                const interval = currentSession.intervals[currentIntervalIndex];
+                const percent = timeRemaining / interval.duration;
+                updateProgressRing(percent);
+                
+                // Countdown beeps
+                if (timeRemaining <= 3 && timeRemaining > 0) {
+                    playCountdown();
+                }
+                
+                // Next interval
+                if (timeRemaining <= 0) {
+                    currentIntervalIndex++;
+                    loadInterval(currentIntervalIndex);
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        }
+
+        function resumeTimer() {
+            isRunning = true;
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        }
+
+        function completeSession() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            
+            playComplete();
+            speak('Session complete. Well done!');
+            
+            timerScreen.style.display = 'none';
+            completeScreen.style.display = 'block';
+            
+            document.getElementById('complete-session-name').textContent = currentSession.name;
+            document.getElementById('complete-time').textContent = formatTime(totalElapsed);
+            document.getElementById('complete-intervals').textContent = currentSession.intervals.length;
+        }
+
+        // ====================================================================
+        // CONTROL BUTTONS
+        // ====================================================================
+        document.getElementById('play-pause-btn').addEventListener('click', () => {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                resumeTimer();
+            }
+        });
+
+        document.getElementById('skip-btn').addEventListener('click', () => {
+            if (currentIntervalIndex < currentSession.intervals.length - 1) {
+                totalElapsed += timeRemaining;
+                currentIntervalIndex++;
+                loadInterval(currentIntervalIndex);
+            }
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            currentIntervalIndex = 0;
+            totalElapsed = 0;
+            loadInterval(0);
+            if (isRunning) {
+                startTimer();
+            }
+        });
+
+        document.getElementById('back-btn').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timerScreen.style.display = 'none';
+            sessionSelect.style.display = 'block';
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        });
+
+        document.getElementById('complete-btn').addEventListener('click', () => {
+            completeScreen.style.display = 'none';
+            sessionSelect.style.display = 'block';
+        });
+
+        // Audio toggle
+        document.getElementById('audioToggle').addEventListener('click', function() {
+            audioEnabled = !audioEnabled;
+            this.classList.toggle('muted', !audioEnabled);
+            
+            if (audioEnabled && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+
+        // Prevent screen sleep on mobile
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('Wake Lock error:', err);
+            }
+        }
+        requestWakeLock();
+    </script>
+</body>
+</html>
